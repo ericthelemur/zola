@@ -200,7 +200,7 @@ impl Site {
                 None => continue,
                 Some(name) => name.to_str().unwrap(),
             };
-            
+
             // ignore excluded content
             match &self.config.ignored_content_globset {
                 Some(gs) => {
@@ -507,11 +507,7 @@ impl Site {
 
     /// Adds a page to the site and render it
     /// Only used in `zola serve --fast`
-    pub fn add_and_render_page(
-        &mut self,
-        path: &Path,
-        base: Option<DateTime<Tz>>,
-    ) -> Result<()> {
+    pub fn add_and_render_page(&mut self, path: &Path, base: Option<DateTime<Tz>>) -> Result<()> {
         let page = Page::from_file(path, &self.config, &self.base_path, base)?;
         self.add_page(page, true)?;
         self.populate_sections();
@@ -584,13 +580,17 @@ impl Site {
 
     /// Inject live reload script tag if in live reload mode
     fn inject_livereload(&self, mut html: String) -> String {
-        if let Some(port) = self.live_reload {
-            let script =
-                format!(r#"<script src="/livereload.js?port={}&amp;mindelay=10"></script>"#, port,);
-            if let Some(index) = html.rfind("</body>") {
-                html.insert_str(index, &script);
-            } else {
-                html.push_str(&script);
+        if html.starts_with("<!") {
+            if let Some(port) = self.live_reload {
+                let script = format!(
+                    r#"<script src="/livereload.js?port={}&amp;mindelay=10"></script>"#,
+                    port,
+                );
+                if let Some(index) = html.rfind("</body>") {
+                    html.insert_str(index, &script);
+                } else {
+                    html.push_str(&script);
+                }
             }
         }
 
